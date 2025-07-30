@@ -1,3 +1,7 @@
+// ✅ XDock Plus actif
+
+alert("✅ XDock Plus actif");
+
 // Cisco Jabber
 
 (function () {
