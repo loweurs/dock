@@ -1,3 +1,46 @@
+// Cisco Jabber
+
+(function () {
+  const allInputs = document.querySelectorAll("input");
+
+  let phoneInput = null;
+
+  for (let input of allInputs) {
+    const label = input.closest("td, div")?.innerText?.toLowerCase() || "";
+    const val = input.value.trim();
+
+    const isPhoneLike = /^\+?\d{9,15}$/.test(val);
+    const labelLooksLikePhone = label.includes("téléphone") || label.includes("pager");
+
+    if (isPhoneLike && labelLooksLikePhone) {
+      phoneInput = input;
+      break;
+    }
+  }
+
+  if (!phoneInput || document.getElementById("jabber-call-button")) return;
+
+  const rawPhone = phoneInput.value.trim().replace(/\s/g, '');
+  const phone = rawPhone.startsWith("+") ? rawPhone : `+${rawPhone}`;
+
+  const btn = document.createElement("a");
+  btn.id = "jabber-call-button";
+  btn.href = `ciscotel:${phone}`;
+  btn.title = "Appeler avec Cisco Jabber";
+  btn.style.marginLeft = "8px";
+  btn.style.verticalAlign = "middle";
+  btn.style.display = "inline-block";
+
+  btn.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" fill="#007AFF" viewBox="0 0 24 24">
+      <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1v3.5a1 1 0 01-1 1C10.3 22.13 1.88 13.7 1.88 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.35.26 2.67.76 3.88a1 1 0 01-.21 1.11l-2.3 2.3z"/>
+    </svg>`;
+
+  phoneInput.parentElement.appendChild(btn);
+})();
+
+// Destination 
+
 (function () {
   'use strict';
 
@@ -40,4 +83,126 @@
 
   observer.observe(document.body, { childList: true, subtree: true });
   rendreCliquables();
+})();
+
+// code barre
+
+(function () {
+  const oldMini = document.getElementById("barcode-mini");
+  const oldZoom = document.getElementById("barcode-zoom");
+  if (oldMini) oldMini.remove();
+  if (oldZoom) oldZoom.remove();
+
+  const porteInput = document.querySelector("input[id*='door']") || document.querySelector("input[value^='T']");
+  const porte = porteInput ? porteInput.value.trim() : "T25";
+
+  const miniContainer = document.createElement("div");
+  miniContainer.id = "barcode-mini";
+  miniContainer.style.marginTop = "10px";
+  miniContainer.style.background = "#fff";
+  miniContainer.style.border = "1px solid #000";
+  miniContainer.style.padding = "8px";
+  miniContainer.style.width = "fit-content";
+  miniContainer.style.cursor = "pointer";
+  miniContainer.innerHTML = `<canvas id="barcodeCanvas" width="120" height="40"></canvas>`;
+
+  if (porteInput && porteInput.parentElement) {
+    porteInput.parentElement.appendChild(miniContainer);
+  }
+
+  const zoomOverlay = document.createElement("div");
+  zoomOverlay.id = "barcode-zoom";
+  zoomOverlay.style.position = "fixed";
+  zoomOverlay.style.top = "0";
+  zoomOverlay.style.left = "0";
+  zoomOverlay.style.width = "100%";
+  zoomOverlay.style.height = "100%";
+  zoomOverlay.style.background = "rgba(0,0,0,0.7)";
+  zoomOverlay.style.display = "none";
+  zoomOverlay.style.zIndex = 999999;
+  zoomOverlay.style.justifyContent = "center";
+  zoomOverlay.style.alignItems = "center";
+
+  zoomOverlay.innerHTML = `
+    <div style="position: relative; background:white; padding:20px; border-radius:10px; max-width:90vw;">
+      <span id="closeZoom" style="position:absolute;top:10px;right:10px;cursor:pointer;font-size:20px;color:#444;">❌</span>
+      <h2 style="text-align:center;">Porte ${porte}</h2>
+      <canvas id="barcodeZoom" width="600" height="150" style="display:block;margin:0 auto;"></canvas>
+    </div>
+  `;
+  document.body.appendChild(zoomOverlay);
+
+  function encode128(data) {
+    const codes = [104];
+    for (let i = 0; i < data.length; i++) {
+      const charCode = data.charCodeAt(i);
+      codes.push(charCode >= 32 && charCode <= 126 ? charCode - 32 : 0);
+    }
+    let checksum = codes[0];
+    for (let i = 1; i < codes.length; i++) checksum += codes[i] * i;
+    codes.push(checksum % 103);
+    codes.push(106);
+    return codes;
+  }
+
+  function codeToBars(code) {
+    const patterns = {
+      0: "11011001100", 1: "11001101100", 2: "11001100110", 3: "10010011000", 4: "10010001100", 5: "10001001100",
+      6: "10011001000", 7: "10011000100", 8: "10001100100", 9: "11001001000", 10: "11001000100", 11: "11000100100",
+      12: "10110011100", 13: "10011011100", 14: "10011001110", 15: "10111001100", 16: "10011101100", 17: "10011100110",
+      18: "11001110010", 19: "11001011100", 20: "11001001110", 21: "11011100100", 22: "11001110100", 23: "11101101110",
+      24: "11101001100", 25: "11100101100", 26: "11100100110", 27: "11101100100", 28: "11100110100", 29: "11100110010",
+      30: "11011011000", 31: "11011000110", 32: "11000110110", 33: "10100011000", 34: "10001011000", 35: "10001000110",
+      36: "10110001000", 37: "10001101000", 38: "10001100010", 39: "11010001000", 40: "11000101000", 41: "11000100010",
+      42: "10110111000", 43: "10110001110", 44: "10001101110", 45: "10111011000", 46: "10111000110", 47: "10001110110",
+      48: "11101110110", 49: "11010001110", 50: "11000101110", 51: "11011101000", 52: "11011100010", 53: "11011101110",
+      54: "11101011000", 55: "11101000110", 56: "11100010110", 57: "11101101000", 58: "11101100010", 59: "11100011010",
+      60: "11101111010", 61: "11001000010", 62: "11110001010", 63: "10100110000", 64: "10100001100", 65: "10010110000",
+      66: "10010000110", 67: "10000101100", 68: "10000100110", 69: "10110010000", 70: "10110000100", 71: "10011010000",
+      72: "10011000010", 73: "10000110100", 74: "10000110010", 75: "11000010010", 76: "11001010000", 77: "11110111010",
+      78: "11000010100", 79: "10001111010", 80: "10100111100", 81: "10010111100", 82: "10010011110", 83: "10111100100",
+      84: "10011110100", 85: "10011110010", 86: "11110100100", 87: "11110010100", 88: "11110010010", 89: "11011011110",
+      90: "11011110110", 91: "11110110110", 92: "10101111000", 93: "10100011110", 94: "10001011110", 95: "10111101000",
+      96: "10111100010", 97: "11110101000", 98: "11110100010", 99: "10111011110", 100: "10111101110", 101: "11101011110",
+      102: "11110101110", 103: "11010000100", 104: "11010010000", 105: "11010011100", 106: "11000111010"
+    };
+    return patterns[code] || "";
+  }
+
+  function drawBarcode(canvas, data, scale = 6) {
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const bars = encode128(data).map(codeToBars).join("") + "11";
+    let x = 10;
+    for (let i = 0; i < bars.length; i++) {
+      ctx.fillStyle = bars[i] === "1" ? "#000" : "#fff";
+      ctx.fillRect(x, 10, scale, 120);
+      x += scale;
+    }
+    ctx.fillStyle = "#000";
+    ctx.font = "16px sans-serif";
+    ctx.textAlign = "center";
+    //ctx.fillText(data, canvas.width / 2, 90);
+  }
+
+  // Zoom avec clic
+  miniContainer.onclick = () => {
+    drawBarcode(document.getElementById("barcodeZoom"), porte, 9);
+    zoomOverlay.style.display = "flex";
+  };
+
+  // Fermer avec la croix
+  zoomOverlay.querySelector("#closeZoom").onclick = () => {
+    zoomOverlay.style.display = "none";
+  };
+
+  // Fermer avec "Échap"
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      zoomOverlay.style.display = "none";
+    }
+  });
+
+  // Affichage miniature
+  drawBarcode(document.getElementById("barcodeCanvas"), porte, 2);
 })();
