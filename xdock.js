@@ -1,19 +1,12 @@
-const currentPath = window.location.pathname;
-
-// Cisco Jabber
-
-if (document.body.innerText.includes("Téléphone") || document.body.innerText.includes("Pager")) {
-}
+// === Cisco Jabber pour la page EM/SM (champ Téléphone/Pager) ===
 
 (function () {
-  const allInputs = document.querySelectorAll("input");
-
+   const allInputs = document.querySelectorAll("input");
   let phoneInput = null;
 
   for (let input of allInputs) {
     const label = input.closest("td, div")?.innerText?.toLowerCase() || "";
     const val = input.value.trim();
-
     const isPhoneLike = /^\+?\d{9,15}$/.test(val);
     const labelLooksLikePhone = label.includes("téléphone") || label.includes("pager");
 
@@ -25,8 +18,8 @@ if (document.body.innerText.includes("Téléphone") || document.body.innerText.i
 
   if (!phoneInput || document.getElementById("jabber-call-button")) return;
 
-  const rawPhone = phoneInput.value.trim().replace(/\s/g, '');
-  const phone = rawPhone.startsWith("+") ? rawPhone : `+${rawPhone}`;
+  const rawPhone = phoneInput.value.trim().replace(/\D/g, "");
+  const phone = phoneInput.value.startsWith("+") ? phoneInput.value : `+${rawPhone}`;
 
   const btn = document.createElement("a");
   btn.id = "jabber-call-button";
@@ -40,27 +33,72 @@ if (document.body.innerText.includes("Téléphone") || document.body.innerText.i
     <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" fill="#007AFF" viewBox="0 0 24 24">
       <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1v3.5a1 1 0 01-1 1C10.3 22.13 1.88 13.7 1.88 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.35.26 2.67.76 3.88a1 1 0 01-.21 1.11l-2.3 2.3z"/>
     </svg>`;
-
   phoneInput.parentElement.appendChild(btn);
 })();
 
-// Destination 
+// === Cisco Jabber dans les colonnes Tél./pager (pages listées) ===
+(function () {
+  const validPages = [
+    "/Taskmanagement/TaskmanagementInArbeit",
+    "/Taskmanagement/Abfahrbereit",
+    "/Taskmanagement/InHouse",
+    "/Taskmanagement/Yardmanagement",
+    "/Taskmanagement"
+  ];
 
-if (currentPath.includes("LkwUebersicht")) {
-    // Exécuter le script des destinations
-}
+  const isTargetPage = validPages.some(url => window.location.pathname.startsWith(url));
+  if (!isTargetPage) return;
 
+  const observer = new MutationObserver(() => {
+    const lignes = document.querySelectorAll("table tbody tr");
+
+    lignes.forEach((ligne) => {
+      const cellules = ligne.querySelectorAll("td");
+      cellules.forEach((cell) => {
+        const telText = cell.textContent.trim();
+        const cleaned = telText.replace(/\D/g, "");
+        const isPhoneLike = telText.startsWith("+") && cleaned.length >= 9 && cleaned.length <= 15;
+        const alreadyIcon = cell.querySelector(".jabber-icon");
+
+        if (!isPhoneLike || alreadyIcon) return;
+
+        const icon = document.createElement("a");
+        icon.href = `ciscotel:${telText}`;
+        icon.title = `Appeler ${telText} avec Jabber`;
+        icon.className = "jabber-icon";
+        icon.style.marginLeft = "6px";
+        icon.style.verticalAlign = "middle";
+        icon.style.display = "inline-block";
+
+        icon.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" fill="#007AFF" viewBox="0 0 24 24">
+            <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21c1.21.49 2.53.76 3.88.76a1 1 0 011 1v3.5a1 1 0 01-1 1C10.3 22.13 1.88 13.7 1.88 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.35.26 2.67.76 3.88a1 1 0 01-.21 1.11l-2.3 2.3z"/>
+          </svg>`;
+
+        // Ajoute l’icône sans effacer le numéro
+        cell.appendChild(icon);
+      });
+    });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
+
+// === Lien cliquable sur les destinations (Synthèse du camion uniquement) ===
 
 (function () {
-  'use strict';
+  const isSyntheseCamionPage = window.location.pathname.includes("/Taskmanagement/LkwUebersicht");
 
+  if (!isSyntheseCamionPage) return;
+
+  
   const destinations = {
     "Alcalá": "alc", "Beaucaire": "bea", "Vitoria": "vit", "Palmela": "palm", "Valencia": "vlc", "Ablis": "abl",
     "Arcs-sur-Argens": "asa", "Barbery": "barb", "Barcelona": "bcn", "Baziège": "baz", "Béziers": "bez",
     "Carquefou": "caq", "Cestas": "cet", "Chanteloup-Les-Vignes": "clv", "Entzheim": "ent", "Gondreville": "gon",
     "Gran Canaria": "gca", "Granada": "grn", "Honguemare-Guenouville": "hon", "La Chapelle D'Armentières": "lca",
     "Le Coudray-Montceaux": "lcm", "Liffré": "lif", "Loures": "lou", "Málaga": "mlg", "Martorell": "mat",
-    "Meaux": "mea", "Montchanin": "mon", "Montoy Flanville": "mfv", "Murcia": "mur", "Narón": "nar",
+    "Meaux": "mea", "Montchanin": "montc", "Montoy Flanville": "mfv", "Murcia": "mur", "Narón": "naró",
     "Plouagat": "plo", "Pontcharra": "pch", "Provence": "pro", "Sailly-lez-Cambrai": "slc",
     "Saint Augustin": "aug", "Saint Quentin Fallavier": "sqf", "Santo Tirso": "san", "Sevilla": "sev",
     "Sorigny": "sor", "Tarragona": "trg", "Tenerife": "ten", "Torres Novas": "ton", "Vars": "var"
@@ -77,7 +115,7 @@ if (currentPath.includes("LkwUebersicht")) {
         const lien = document.createElement('a');
         lien.href = `/Warenausgang/Tag?sort=StatusASC&selecteddate=${dateDuJour}&search=${encodeURIComponent(codeRecherche)}`;
         lien.innerText = texte;
-        lien.style.color = '#0000EE';
+        lien.style.color = '#000000';
         lien.style.textDecoration = 'underline';
         lien.title = `Ouvrir la page de sortie pour ${texte}`;
 
@@ -95,14 +133,12 @@ if (currentPath.includes("LkwUebersicht")) {
   rendreCliquables();
 })();
 
-// code barre
-
-if (document.querySelector("input[id*='door']")) {
-    // Exécuter le script du code-barres
-}
+// === Générateur de code-barres dynamique ===
 
 (function () {
-  const oldMini = document.getElementById("barcode-mini");
+  if (!window.location.pathname.startsWith("/Warenausgang/")) return;
+
+   const oldMini = document.getElementById("barcode-mini");
   const oldZoom = document.getElementById("barcode-zoom");
   if (oldMini) oldMini.remove();
   if (oldZoom) oldZoom.remove();
