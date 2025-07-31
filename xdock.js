@@ -39,11 +39,11 @@
 // === Cisco Jabber dans les colonnes Tél./pager (pages listées) ===
 (function () {
   const validPages = [
-    "/Taskmanagement/TaskmanagementInArbeit",
-    "/Taskmanagement/Abfahrbereit",
-    "/Taskmanagement/InHouse",
-    "/Taskmanagement/Yardmanagement",
-    "/Taskmanagement"
+    "tf-stb.xdock.de/Taskmanagement/TaskmanagementInArbeit",
+    "tf-stb.xdock.de/Taskmanagement/Abfahrbereit",
+    "tf-stb.xdock.de/Taskmanagement/InHouse",
+    "tf-stb.xdock.de/Taskmanagement/Yardmanagement",
+    "tf-stb.xdock.de/Taskmanagement"
   ];
 
   const isTargetPage = validPages.some(url => window.location.pathname.startsWith(url));
@@ -87,7 +87,7 @@
 // === Lien cliquable sur les destinations (Synthèse du camion uniquement) ===
 
 (function () {
-  const isSyntheseCamionPage = window.location.pathname.includes("/Taskmanagement/LkwUebersicht");
+  const isSyntheseCamionPage = window.location.pathname.includes("tf-stb.xdock.de/Taskmanagement/LkwUebersicht");
 
   if (!isSyntheseCamionPage) return;
 
@@ -136,7 +136,7 @@
 // === Générateur de code-barres dynamique ===
 
 (function () {
-  if (!window.location.pathname.startsWith("/Warenausgang/")) return;
+  if (!window.location.pathname.startsWith("tf-stb.xdock.de/Warenausgang/")) return;
 
    const oldMini = document.getElementById("barcode-mini");
   const oldZoom = document.getElementById("barcode-zoom");
