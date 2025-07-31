@@ -1,8 +1,9 @@
-// ✅ XDock Plus actif
-
-alert("✅ XDock Plus actif");
+const currentPath = window.location.pathname;
 
 // Cisco Jabber
+
+if (document.body.innerText.includes("Téléphone") || document.body.innerText.includes("Pager")) {
+}
 
 (function () {
   const allInputs = document.querySelectorAll("input");
@@ -44,6 +45,11 @@ alert("✅ XDock Plus actif");
 })();
 
 // Destination 
+
+if (currentPath.includes("LkwUebersicht")) {
+    // Exécuter le script des destinations
+}
+
 
 (function () {
   'use strict';
@@ -90,6 +96,10 @@ alert("✅ XDock Plus actif");
 })();
 
 // code barre
+
+if (document.querySelector("input[id*='door']")) {
+    // Exécuter le script du code-barres
+}
 
 (function () {
   const oldMini = document.getElementById("barcode-mini");
