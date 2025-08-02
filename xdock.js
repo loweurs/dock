@@ -1,4 +1,4 @@
-// 4 : script tet, destination, code barre,Nombre(s) de camoion jour/Avance dans le parc
+// 5 : 1 script tet, 2 destination, 3 code barre, 4 Nombre(s) de camoion jour/Avance dans le parc, 5 Recharche de AB dans le parc,
 
 // === Cisco Jabber pour la page EM/SM (champ Téléphone/Pager) ===
 
@@ -262,7 +262,7 @@
 // Nombre de camion Jour/avance dans le parc
 
 (function () {
-  if (!location.href.includes("/Yardmanagement")) return;
+  if (!window.location.pathname.includes("/Yardmanagement")) return;
 
   function mettreAJourCompteurs() {
     const verts = document.querySelectorAll('.trafficLightVorrauswareGreen').length;
@@ -272,27 +272,137 @@
     const titre = Array.from(document.querySelectorAll("h1, h2")).find(el => el.textContent.includes("Gestion du parc"));
     if (!titre) return;
 
+    // Création du conteneur global
+    let container = document.getElementById("filtrage-et-compteurs");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "filtrage-et-compteurs";
+      container.style.display = "flex";
+      container.style.alignItems = "center";
+      container.style.gap = "20px";
+      container.style.marginTop = "10px";
+      container.style.justifyContent = "center";
+      container.style.position = "absolute";
+      container.style.top = "50%";
+      container.style.transform = "translateY(-50%)";
+      container.style.left = "200px";
+      container.style.zIndex = "9999";
+
+      titre.parentElement.insertBefore(container, titre.nextSibling);
+    }
+
+    // Menu déroulant
+    let select = document.getElementById("filtre-couleur");
+    if (!select) {
+      select = document.createElement("select");
+      select.id = "filtre-couleur";
+      select.style.fontSize = "18px";
+      select.style.padding = "6px 12px";
+      select.style.border = "1px solid #ccc";
+      select.style.borderRadius = "10px";
+      select.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+      select.style.backgroundColor = "#f5f5f5";
+      select.style.fontWeight = "bold";
+      select.style.height = "42px";
+
+      select.innerHTML = `
+        <option value="all">Afficher tous</option>
+        <option value="green">🟢 Verts</option>
+        <option value="yellow">🟡 Jaunes</option>
+        <option value="red">🔴 Rouges</option>
+      `;
+
+      // Réapplique la sélection précédente si disponible
+      const savedFilter = localStorage.getItem("filtre-couleur");
+      if (savedFilter) {
+        select.value = savedFilter;
+      }
+
+      container.appendChild(select);
+
+      select.addEventListener("change", () => {
+        localStorage.setItem("filtre-couleur", select.value);
+        appliquerFiltre(select.value);
+      });
+    }
+
+    // Appliquer le filtre en cours (au rechargement par exemple)
+    appliquerFiltre(select.value);
+
+    // Compteurs
     let compteur = document.getElementById("compteurs-marchandises");
     if (!compteur) {
       compteur = document.createElement("span");
       compteur.id = "compteurs-marchandises";
-      compteur.style.marginLeft = "30px";
+      compteur.style.fontSize = "18px";
       compteur.style.padding = "6px 12px";
       compteur.style.border = "1px solid #ccc";
       compteur.style.borderRadius = "10px";
       compteur.style.background = "#fff";
-      compteur.style.fontSize = "18px";
       compteur.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-      compteur.style.display = "inline-block";
-      compteur.style.verticalAlign = "middle";
-      titre.appendChild(compteur);
+      container.appendChild(compteur);
     }
 
     compteur.innerHTML = `🟢 ${verts} &nbsp;&nbsp; 🟡 ${jaunes} &nbsp;&nbsp; 🔴 ${rouges}`;
   }
 
+  function appliquerFiltre(value) {
+    const rows = document.querySelectorAll("table tbody tr");
+    rows.forEach(row => {
+      const hasRed = row.querySelector(".trafficLightVorrauswareRed");
+      const hasYellow = row.querySelector(".trafficLightVorrauswareYellow");
+      const hasGreen = row.querySelector(".trafficLightVorrauswareGreen");
+
+      row.style.display = "table-row"; // reset
+
+      if (value === "green" && !hasGreen) row.style.display = "none";
+      if (value === "yellow" && !hasYellow) row.style.display = "none";
+      if (value === "red" && !hasRed) row.style.display = "none";
+    });
+  }
+
+  // Lancement initial
   setTimeout(() => {
     mettreAJourCompteurs();
-    setInterval(mettreAJourCompteurs, 10000);
-  }, 2000);
+    setInterval(mettreAJourCompteurs, 10000); // toutes les 10s
+  }, 1500);
+})();
+
+
+
+// Palette AB dans Gestion du parc
+
+(function () {
+  if (!window.location.pathname.includes("/Yardmanagement")) return;
+
+  function getTomorrowFormatted() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const yy = String(tomorrow.getFullYear()).slice(2);
+    const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const dd = String(tomorrow.getDate()).padStart(2, '0');
+    return `${yy}${mm}${dd}`; // Format : YYMMDD
+  }
+
+  const klstbCible = getTomorrowFormatted();
+
+  const lignes = document.querySelectorAll("table tbody tr");
+  lignes.forEach(ligne => {
+    const contenu = ligne.innerText;
+
+    const estEM = contenu.includes("EM");
+    const contientKLSTB = contenu.includes(klstbCible);
+
+    if (estEM && contientKLSTB) {
+      ligne.style.backgroundColor = "#fff9cc"; // Jaune pâle
+      const badge = document.createElement("span");
+      badge.textContent = "📦 AB";
+      badge.style.marginLeft = "8px";
+      badge.style.color = "#d18d00";
+      badge.style.fontWeight = "bold";
+
+      const premiereCellule = ligne.querySelector("td");
+      if (premiereCellule) premiereCellule.appendChild(badge);
+    }
+  });
 })();
