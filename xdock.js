@@ -1,4 +1,4 @@
-// 3 script tel , destination , code barre
+// 4 : script tet, destination, code barre,Nombre(s) de camoion jour/Avance dans le parc
 
 // === Cisco Jabber pour la page EM/SM (champ Téléphone/Pager) ===
 
@@ -257,4 +257,42 @@
 
   // Affichage miniature
   drawBarcode(document.getElementById("barcodeCanvas"), porte, 2);
+})();
+
+// Nombre de camion Jour/avance dans le parc
+
+(function () {
+  if (!location.href.includes("/Yardmanagement")) return;
+
+  function mettreAJourCompteurs() {
+    const verts = document.querySelectorAll('.trafficLightVorrauswareGreen').length;
+    const jaunes = document.querySelectorAll('.trafficLightVorrauswareYellow').length;
+    const rouges = document.querySelectorAll('.trafficLightVorrauswareRed').length;
+
+    const titre = Array.from(document.querySelectorAll("h1, h2")).find(el => el.textContent.includes("Gestion du parc"));
+    if (!titre) return;
+
+    let compteur = document.getElementById("compteurs-marchandises");
+    if (!compteur) {
+      compteur = document.createElement("span");
+      compteur.id = "compteurs-marchandises";
+      compteur.style.marginLeft = "30px";
+      compteur.style.padding = "6px 12px";
+      compteur.style.border = "1px solid #ccc";
+      compteur.style.borderRadius = "10px";
+      compteur.style.background = "#fff";
+      compteur.style.fontSize = "18px";
+      compteur.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+      compteur.style.display = "inline-block";
+      compteur.style.verticalAlign = "middle";
+      titre.appendChild(compteur);
+    }
+
+    compteur.innerHTML = `🟢 ${verts} &nbsp;&nbsp; 🟡 ${jaunes} &nbsp;&nbsp; 🔴 ${rouges}`;
+  }
+
+  setTimeout(() => {
+    mettreAJourCompteurs();
+    setInterval(mettreAJourCompteurs, 10000);
+  }, 2000);
 })();
