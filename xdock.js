@@ -1,4 +1,4 @@
-// 5 : 1 script tet, 2 destination, 3 code barre, 4 Nombre(s) de camoion jour/Avance dans le parc, 5 Recharche de AB dans le parc,
+// 6 : 1 script tet, 2 destination, 3 code barre, 4 Nombre(s) de camoion jour/Avance dans le parc, 5 Recharche de AB dans le parc, 6 Alerte IPPC, 
 
 // === Cisco Jabber pour la page EM/SM (champ Téléphone/Pager) ===
 
@@ -307,9 +307,9 @@
 
       select.innerHTML = `
         <option value="all">Afficher tous</option>
-        <option value="green">🟢 Verts</option>
-        <option value="yellow">🟡 Jaunes</option>
-        <option value="red">🔴 Rouges</option>
+        <option value="green">🟢 Aucune précommande</option>
+        <option value="yellow">🟡 Partiel</option>
+        <option value="red">🔴 Complet</option>
       `;
 
       // Réapplique la sélection précédente si disponible
@@ -405,4 +405,74 @@
       if (premiereCellule) premiereCellule.appendChild(badge);
     }
   });
+})();
+
+// alerte iPPC Pal
+
+(function () {
+  // Appliqué sur toutes les pages
+  const observer = new MutationObserver(() => {
+    const lignes = document.querySelectorAll("table tbody tr");
+    lignes.forEach((ligne) => {
+      const statutCell = Array.from(ligne.cells).find(cell => cell.innerText.includes("44"));
+      const motifCell = Array.from(ligne.cells).find(cell => cell.innerText.includes("WE IPPC-Stempel fehlt"));
+      const emCell = Array.from(ligne.cells).find(cell => /^EM\d{6,}/.test(cell.innerText));
+
+      if (statutCell && motifCell && emCell && !ligne.classList.contains("alerte-affichee")) {
+        const emNumber = emCell.innerText.trim();
+        afficherAlerte(emNumber, "WE IPPC-Stempel fehlt");
+        ligne.classList.add("alerte-affichee"); // évite répétition
+      }
+    });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  function afficherAlerte(em, probleme) {
+    const alerte = document.createElement("div");
+    alerte.className = "alerte-ipcc";
+    alerte.style.position = "fixed";
+    alerte.style.bottom = "20px";
+    alerte.style.right = "20px";
+    alerte.style.padding = "14px 20px";
+    alerte.style.background = "rgba(138, 43, 226, 0.5)"; // violet 50% transparent
+    alerte.style.color = "white";
+    alerte.style.borderRadius = "15px";
+    alerte.style.boxShadow = "0 2px 8px rgba(0,0,0,0.3)";
+    alerte.style.zIndex = 999999;
+    alerte.style.fontSize = "16px";
+    alerte.style.cursor = "pointer";
+    alerte.style.maxWidth = "300px";
+    alerte.style.lineHeight = "1.5";
+    alerte.style.transition = "opacity 0.5s";
+
+    alerte.innerHTML = `
+      <strong>${em}</strong><br>${probleme}
+      <span class="fermer-alerte" style="
+        position: absolute;
+        top: 6px;
+        right: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        color: white;
+      ">✖</span>
+    `;
+
+    alerte.onclick = () => {
+      window.location.href = `/Taskmanagement/EditEm/${em}`;
+    };
+
+    // Empêche la fermeture immédiate au clic (mais autorise redirection)
+    alerte.querySelector(".fermer-alerte").onclick = (e) => {
+      e.stopPropagation();
+      alerte.remove();
+    };
+
+    document.body.appendChild(alerte);
+
+    setTimeout(() => {
+      alerte.style.opacity = "0";
+      setTimeout(() => alerte.remove(), 500);
+    }, 10000);
+  }
 })();
