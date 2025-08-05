@@ -118,7 +118,6 @@
         lien.href = `/Warenausgang/Tag?sort=StatusASC&selecteddate=${dateDuJour}&search=${encodeURIComponent(codeRecherche)}`;
         lien.innerText = texte;
         lien.style.color = '#000000';
-        lien.style.textDecoration = 'underline';
         lien.title = `Ouvrir la page de sortie pour ${texte}`;
 
         cellule.innerHTML = '';
