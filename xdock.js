@@ -1,4 +1,4 @@
-// 6 : 1 script tet, 2 destination, 3 code barre, 4 Nombre(s) de camoion jour/Avance dans le parc, 5 Recharche de AB dans le parc, 6 statut 44, 
+// 4 : 1 script tet, 2 destination, 3 code barre, 4 Nombre(s) de camoion jour/Avance dans le parc,
 
 // === Cisco Jabber pour la page EM/SM (champ Téléphone/Pager) ===
 
