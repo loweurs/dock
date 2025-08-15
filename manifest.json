@@ -2,48 +2,16 @@
   "manifest_version": 3,
   "name": "XDock Plus",
   "version": "1.0.0",
-  "description": "Améliore l'interface de XDock (Jabber, liens, code-barres, AB, alertes, Contacts).",
-
-  "permissions": ["storage"],
-
-  "host_permissions": [
-  "*://*.xdock.de/*",
-  "https://gp-eff.alwaysdata.net/xdockplus/AB/ab_status_backend.php",
-  "https://gp-eff.alwaysdata.net/xdockplus/contacts/api.php"
-  ],
-
-  "background": {
-    "service_worker": "bg.js"
-  },
-
-  "action": {
-    "default_icon": "icon.png",
-    "default_title": "XDock Plus"
-  },
-
+  "description": "Ajouts et améliorations pour XDock",
+  "permissions": ["storage", "activeTab", "scripting"],
   "content_scripts": [
     {
-      "matches": ["*://*.xdock.de/*"],
-      "js": ["jsbarcode.min.js", "xdock.js"],
-      "run_at": "document_idle",
-      "all_frames": true
+      "matches": ["*://ton.site/*"],
+      "js": ["src/jsbarcode.min.js", "src/xdock.js"]
     }
   ],
-
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "contacts/index.html",
-        "contacts/app.js",
-        "contacts/*"
-      ],
-      "matches": ["*://*.xdock.de/*"]
-    }
-  ],
-
   "icons": {
-    "16": "icon.png",
-    "48": "icon.png",
-    "128": "icon.png"
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
   }
 }
